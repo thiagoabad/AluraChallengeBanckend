@@ -3,36 +3,63 @@ const router = express.Router();
 const Incomes = require("../models/incomes")
 
 router.get('/', (req, res) => {
-    Incomes.findAll().then(queryRes => res.send(queryRes));
+    Incomes.findAll().then(queryRes => res.send(queryRes))
 })
 router.get('/:id', (req, res) => {
-    //TODO validation
-    //TODO return 404
-    Incomes.findAll({
+    
+    Incomes.findOne({
         where: { id: req.params.id }
-      }).then(queryRes => res.send(queryRes));
+    }).then(queryRes => {
+        if (queryRes) {
+            res.send(queryRes)
+        } else {
+            res.status(404).send(queryRes)    
+        }
+    })
+    .catch(err => res.status(500).send(err))
 })
-router.post('/', (req, res) => {
-    //TODO auto increment
+router.post('/', async (req, res) => {
     //TODO validation
-    Incomes.create(req.body).then(income => res.send(income))
+    let income = req.body
+    let id = await Incomes.max('id')
+    income['id'] = id+1
+    Incomes.create(income)
+    .then(incomeAdded => res.send(incomeAdded))
+    .catch(err => res.status(500).send(err))
 })
 router.put('/:id', (req, res) => {
     //TODO validation
-    //TODO return 404
-    //TODO return updated model
     Incomes.update(req.body, {
         where: {
-          id: req.body.id
+          id: req.params.id
         }
-    }).then(queryRes => res.send(queryRes));
+    }).then(queryRes => {
+        if (queryRes > 0) {
+            Incomes.findOne({
+                where: {
+                    id: req.params.id
+                }
+        }).then(queryRes => 
+            res.send(queryRes)
+            )
+        } else {
+            res.status(404).send(queryRes)
+        }
+        console.log(queryRes)
+    })
+    .catch(err => res.status(500).send(err))
 })
 router.delete('/:id', (req, res) => {
-    //TODO validation
-    //TODO return 404
     Incomes.destroy({
         where: { id: req.params.id }
-      }).then(() => res.send({message: "deleted"}));
+    }).then(queryRes => {
+        if (queryRes > 0) {
+            res.send({message: "deleted"})
+        } else {
+            res.status(404).send()
+        }
+    })
+    .catch(err => res.status(500).send(err))
 })
  
 module.exports = router;

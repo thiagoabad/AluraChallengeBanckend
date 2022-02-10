@@ -1,55 +1,64 @@
 const express = require('express')
 const router = express.Router();
-const Expenses = require("../models/Expenses")
+const Expenses = require("../models/expenses")
 
 router.get('/', (req, res) => {
-    Expenses.findAll().then(queryRes => res.send(queryRes));
+    Expenses.findAll().then(queryRes => res.send(queryRes))
 })
 router.get('/:id', (req, res) => {
-    //TODO validation
-    Expenses.findAll({
+    Expenses.findOne({
         where: { id: req.params.id }
-      }).then(queryRes => {
-        if (queryRes.length == 0){
-            res.status(404).send()
-        } else {
+    }).then(queryRes => {
+        if (queryRes) {
             res.send(queryRes)
+        } else {
+            res.status(404).send(queryRes)    
         }
-      });
+    })
+    .catch(err => res.status(500).send(err))
 })
-router.post('/', (req, res) => {
-    //TODO auto increment
+router.post('/', async (req, res) => {
     //TODO validation
-    Expenses.create(req.body).then(income => res.send(income))
+    let income = req.body
+    let id = await Expenses.max('id')
+    income['id'] = id+1
+    Expenses.create(income)
+    .then(incomeAdded => res.send(incomeAdded))
+    .catch(err => res.status(500).send(err))
 })
-router.put('/', (req, res) => {
+router.put('/:id', (req, res) => {
     //TODO validation
     Expenses.update(req.body, {
         where: {
-          id: req.body.id
+          id: req.params.id
         }
     }).then(queryRes => {
-        if (queryRes == 0){
-            res.status(404).send()
-        } else {
+        if (queryRes > 0) {
             Expenses.findOne({
-                where: { id: req.body.id }
-            }).then(queryRes => res.send(queryRes));
+                where: {
+                    id: req.params.id
+                }
+        }).then(queryRes => 
+            res.send(queryRes)
+            )
+        } else {
+            res.status(404).send(queryRes)
         }
-    });
+        console.log(queryRes)
+    })
+    .catch(err => res.status(500).send(err))
 })
 router.delete('/:id', (req, res) => {
-    //TODO validation
     Expenses.destroy({
         where: { id: req.params.id }
-      }).then(queryRes => {
-        console.log(queryRes)
-        if (queryRes == 0){
-            res.status(404).send()
-        } else {
+    }).then(queryRes => {
+        if (queryRes > 0) {
             res.send({message: "deleted"})
+        } else {
+            res.status(404).send()
         }
-      });
+    })
+    .catch(err => res.status(500).send(err))
 })
  
 module.exports = router;
