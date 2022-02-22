@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const { sequelize } = require("../db")
+const ExpensesCategories = require("../models/categories")
 
 const Expenses = sequelize.define('despesas', {
     id: {
@@ -19,6 +20,10 @@ const Expenses = sequelize.define('despesas', {
         type: DataTypes.DATE,
         allowNull: false
     },
+    id_categoria: {
+        type: DataTypes.INTEGER,
+        allowNull: false
+    },
     createdAt: {
         type: DataTypes.DATE,
         allowNull: false
@@ -28,5 +33,7 @@ const Expenses = sequelize.define('despesas', {
         allowNull: false
     }
   }, {});
+
+  Expenses.hasOne(ExpensesCategories, { foreignKey: 'id' })
 
   module.exports = Expenses;

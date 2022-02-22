@@ -1,64 +1,56 @@
 const express = require('express')
 const router = express.Router();
-const Expenses = require("../models/expenses")
+const { findAll, insert, update, remove, findOne, findByDate } = require("../controllers/expenses")
 
-router.get('/', (req, res) => {
-    Expenses.findAll().then(queryRes => res.send(queryRes))
+router.get('/', async (req, res) => {
+    const result = await findAll(req.query.description)
+    .catch(err => res.status(500).send(err))
+    res.send(result)
 })
-router.get('/:id', (req, res) => {
-    Expenses.findOne({
-        where: { id: req.params.id }
-    }).then(queryRes => {
-        if (queryRes) {
-            res.send(queryRes)
+
+router.get('/:ano/:mes', async (req, res) => {
+    //TODO validation
+    const result = await findByDate(parseInt(req.params.mes), parseInt(req.params.ano))
+    .catch(err => res.status(500).send(err))
+    res.send(result)
+})
+router.get('/:id', async (req, res) => {
+    const result = await findOne(req.params.id)
+    .catch(err => {
+        if (err == 404) {
+            res.status(404).send()
         } else {
-            res.status(404).send(queryRes)    
+            res.status(500).send(err)
         }
     })
-    .catch(err => res.status(500).send(err))
+    res.send(result)
 })
 router.post('/', async (req, res) => {
     //TODO validation
-    let income = req.body
-    let id = await Expenses.max('id')
-    income['id'] = id+1
-    Expenses.create(income)
-    .then(incomeAdded => res.send(incomeAdded))
+    const result = await insert(req.body)
     .catch(err => res.status(500).send(err))
+    res.send(result)
 })
-router.put('/:id', (req, res) => {
+router.put('/:id', async (req, res) => {
     //TODO validation
-    Expenses.update(req.body, {
-        where: {
-          id: req.params.id
-        }
-    }).then(queryRes => {
-        if (queryRes > 0) {
-            Expenses.findOne({
-                where: {
-                    id: req.params.id
-                }
-        }).then(queryRes => 
-            res.send(queryRes)
-            )
-        } else {
-            res.status(404).send(queryRes)
-        }
-        console.log(queryRes)
-    })
-    .catch(err => res.status(500).send(err))
-})
-router.delete('/:id', (req, res) => {
-    Expenses.destroy({
-        where: { id: req.params.id }
-    }).then(queryRes => {
-        if (queryRes > 0) {
-            res.send({message: "deleted"})
-        } else {
+    const result = await update(req.body, req.params.id)
+    .catch(err => {
+        if (err == 404) {
             res.status(404).send()
+        } else {
+            res.status(500).send(err)
         }
     })
-    .catch(err => res.status(500).send(err))
+    res.send(result)
+})
+router.delete('/:id', async (req, res) => {
+    const result = await remove(req.params.id)
+    if (err == 404) {
+        res.status(404).send()
+    } else {
+        res.status(500).send(err)
+    }
+    res.send(result)
 })
  
 module.exports = router;

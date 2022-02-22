@@ -1,12 +1,38 @@
 const express = require('express')
 const router = express.Router();
 const Incomes = require("../models/incomes")
+const { Op } = require("sequelize");
 
 router.get('/', (req, res) => {
-    Incomes.findAll().then(queryRes => res.send(queryRes))
+    console.log(req.query.description)
+    Incomes.findAll({
+        where:{
+            descricao: {
+                [Op.like]: `%${req.query.description}%`,
+            }
+        }
+    })
+    .then(queryRes => res.send(queryRes))
+    .catch(err => res.status(500).send(err))
+})
+router.get('/:ano/:mes', (req, res) => {
+    const initialDate = new Date(`${req.params.ano}-${req.params.mes}`)
+    initialDate.setDate(1)
+    const endDate = new Date(`${req.params.ano}-${req.params.mes}`)
+    endDate.setMonth(endDate.getMonth() + 1)
+    endDate.setDate(0)
+    //TODO validation
+    query = { data: {
+        [Op.between]: [initialDate.toISOString(), endDate.toISOString()]
+    }}
+    Incomes.findAll({where: {
+        ...query
+    }})
+    .then(queryRes => res.send(queryRes))
+    .catch(err => res.status(500).send(err))
 })
 router.get('/:id', (req, res) => {
-    
+    '${asd}'
     Incomes.findOne({
         where: { id: req.params.id }
     }).then(queryRes => {
@@ -61,5 +87,5 @@ router.delete('/:id', (req, res) => {
     })
     .catch(err => res.status(500).send(err))
 })
- 
+
 module.exports = router;
