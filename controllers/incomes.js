@@ -1,8 +1,7 @@
-const Expenses = require("../models/expenses")
-const ExpensesCategories = require("../models/categories")
+const Incomes = require("../models/incomes")
 const { Op } = require("sequelize");
 
-function findAllExpenses(description) {
+function findAllIncomes(description) {
     return new Promise(async function(resolve, reject){
         let query;
         if (!!description) {
@@ -11,11 +10,10 @@ function findAllExpenses(description) {
             }}
         }
         try {
-            const res = await Expenses.findAll({
+            const res = await Incomes.findAll({
                 where:{
                     ...query,
-                },
-                include: ExpensesCategories
+                }
             })
             resolve(res)
         } catch (sequelizeError) {
@@ -24,9 +22,9 @@ function findAllExpenses(description) {
     })
 }
 
-function findOneExpense(id) {
+function findOneIncome(id) {
     return new Promise(async function(resolve, reject){
-        Expenses.findOne({
+        Incomes.findOne({
             where: { id: id }
         }).then(queryRes => {
             if (queryRes) {
@@ -38,25 +36,25 @@ function findOneExpense(id) {
     })
 }
 
-function insertExpense(expense) {
+function insertIncome(expense) {
     return new Promise(async function(resolve, reject){
-        let id = await Expenses.max('id')
+        let id = await Incomes.max('id')
         expense['id'] = id+1
-        Expenses.create(expense)
+        Incomes.create(expense)
             .then(expenseAdded => resolve(expenseAdded))
             .catch(err => reject(err))
     })
 }
 
-function updateExpense(expense, id) {
+function updateIncome(expense, id) {
     return new Promise(async function(resolve, reject){
-        Expenses.update(expense, {
+        Incomes.update(expense, {
             where: {
               id: id
             }
         }).then(queryRes => {
             if (queryRes > 0) {
-                Expenses.findOne({
+                Incomes.findOne({
                     where: {
                         id: id
                     }
@@ -70,9 +68,9 @@ function updateExpense(expense, id) {
     })
 }
 
-function removeExpense(id) {
+function removeIncome(id) {
     return new Promise(async function(resolve, reject){
-        Expenses.destroy({
+        Incomes.destroy({
             where: { id: id }
         }).then(queryRes => {
             if (queryRes > 0) {
@@ -84,7 +82,7 @@ function removeExpense(id) {
     })
 }
 
-function findExpensesByDate(month, year) {
+function findIncomesByDate (month, year) {
     return new Promise(async function(resolve, reject){
         const initialDate = new Date(`${year}-${month}`)
         initialDate.setDate(1)
@@ -94,7 +92,7 @@ function findExpensesByDate(month, year) {
         query = { data: {
             [Op.between]: [initialDate.toISOString(), endDate.toISOString()]
         }}
-        Expenses.findAll({where: {
+        Incomes.findAll({where: {
             ...query
         }})
         .then(queryRes => resolve(queryRes))
@@ -102,11 +100,11 @@ function findExpensesByDate(month, year) {
     })
 }
 
-module.exports = { 
-    findAllExpenses, 
-    insertExpense, 
-    updateExpense, 
-    removeExpense, 
-    findOneExpense, 
-    findExpensesByDate 
+module.exports = {
+    findAllIncomes,
+    insertIncome,
+    updateIncome,
+    removeIncome,
+    findOneIncome,
+    findIncomesByDate
 }

@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "mocha",
+    "test": "mocha --timeout 10000",
     "rollback": "node rollback.js"
   },
   "author": "",
